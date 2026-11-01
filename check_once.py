@@ -57,21 +57,23 @@ def embed(title, text, color=GREEN):
 
 
 def update_board(text):
-    """Editeaza mesajul live doar cand s-a schimbat ceva, sau il creeaza."""
+    """Editeaza mesajul live doar cand s-a schimbat ceva, sau il recreeaza daca a fost sters."""
     board = read_json(BOARD_FILE)
-    if board.get("text") == text:
-        return
     payload = embed("⚔️ Status servere Metin2", text, RED if "🔴" in text else GREEN)
     message = None
     if board.get("message_id"):
         try:
-            payload["content"] = None
             path = f"/channels/{CHANNEL_ID}/messages/{board['message_id']}"
+            if board.get("text") == text:
+                discord_call("GET", path)
+                return
+            payload["content"] = None
             message = discord_call("PATCH", path, payload)
         except urllib.error.HTTPError as error:
             if error.code != 404:
                 raise
     if message is None:
+        payload.pop("content", None)
         message = discord_call("POST", f"/channels/{CHANNEL_ID}/messages", payload)
     write_json(BOARD_FILE, {"message_id": message["id"], "text": text})
 
