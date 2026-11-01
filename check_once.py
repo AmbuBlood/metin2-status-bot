@@ -37,10 +37,10 @@ def fetch_servers():
     return servers
 
 
-def discord_call(method, path, payload):
+def discord_call(method, path, payload=None):
     request = urllib.request.Request(
         f"{API}{path}",
-        data=json.dumps(payload).encode("utf-8"),
+        data=None if payload is None else json.dumps(payload).encode("utf-8"),
         method=method,
         headers={
             "Authorization": f"Bot {TOKEN}",
@@ -77,6 +77,8 @@ def update_board(text):
 
 
 def main():
+    # Un token gresit trebuie sa pice rularea, nu abia la urmatoarea mentenanta.
+    discord_call("GET", f"/channels/{CHANNEL_ID}")
     servers = fetch_servers()
     state, finished = step(read_json(STATE_FILE), servers, time.time())
     if finished:
