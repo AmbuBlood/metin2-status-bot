@@ -35,21 +35,35 @@ def format_line(server, info):
     """🟢 **Server** · Spawn Ch1: `minut±1` · par/impar"""
     if info["login"] != "ONLINE":
         return f"🔴 **{server}** · {info['login']}"
-    line = f"🟢 **{server}** · Spawn Ch1: "
+    return f"🟢 **{server}** · Spawn Ch1: {spawn_text(info.get('ch2_date'))}"
+
+
+def spawn_text(value):
+    """`minut±1` · par/impar, din data de la Channel 2."""
     try:
-        date = datetime.strptime(info.get("ch2_date") or "", "%Y-%m-%d %H:%M:%S")
+        date = datetime.strptime(value or "", "%Y-%m-%d %H:%M:%S")
     except ValueError:
-        return line + "necunoscut"
+        return "necunoscut"
     # Regula ceruta: ora divizibila cu 2 inseamna impar, altfel par.
     parity = "impar" if date.hour % 2 == 0 else "par"
-    return f"{line}`{date.minute:02d}±1` · {parity}"
+    return f"`{date.minute:02d}±1` · {parity}"
 
 
 def format_board(servers, state):
-    """Mesajul live: spawn-ul pentru serverele online, doar statusul pentru restul."""
+    """Mesajul live: spawn-ul pentru online, spawn posibil daca doar canalele au revenit."""
     lines = []
     for name, info in servers.items():
-        if name in state or info.get("ch2") != "ONLINE":
+        ch2_new = (
+            info.get("ch2") == "ONLINE"
+            and name in state
+            and info.get("ch2_date") != state[name].get("ch2_before")
+        )
+        if info["login"] != "ONLINE":
+            line = format_line(name, info)
+            if ch2_new:
+                line += f" · Spawn posibil: {spawn_text(info.get('ch2_date'))}"
+            lines.append(line)
+        elif name in state or info.get("ch2") != "ONLINE":
             # Ora de la Channel 2 nu e inca valabila.
             lines.append(format_line(name, {**info, "ch2_date": None}))
         else:

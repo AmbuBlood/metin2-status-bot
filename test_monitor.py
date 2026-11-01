@@ -46,6 +46,21 @@ class BoardTest(unittest.TestCase):
         self.assertEqual(lines[2], "🟢 **C** · Spawn Ch1: necunoscut")
 
 
+class PossibleSpawnTest(unittest.TestCase):
+    def line(self, ch2, date):
+        servers = {"X": {"login": "OFFLINE", "ch2": ch2, "ch2_date": date}}
+        return format_board(servers, {"X": {"ch2_before": OLD}})
+
+    def test_channels_back_before_login(self):
+        self.assertEqual(self.line("ONLINE", NEW), "🔴 **X** · OFFLINE · Spawn posibil: `00±1` · par")
+
+    def test_old_date_is_hidden(self):
+        self.assertEqual(self.line("ONLINE", OLD), "🔴 **X** · OFFLINE")
+
+    def test_channel_still_down(self):
+        self.assertEqual(self.line("OFFLINE", NEW), "🔴 **X** · OFFLINE")
+
+
 class ParseTest(unittest.TestCase):
     def test_login_and_channel_2(self):
         html = row("[RUBY] A - Login", "OFFLINE", OLD) + row("[RUBY] A - Channel 1", "ONLINE", NEW)
