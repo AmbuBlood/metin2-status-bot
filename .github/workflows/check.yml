@@ -24,9 +24,9 @@ jobs:
       - name: Verifica pagina si actualizeaza Discord
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          CHANNEL_ID: "1566465384259915798"
         run: python check_once.py
       - name: Salveaza starea
+        if: success() || failure()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
