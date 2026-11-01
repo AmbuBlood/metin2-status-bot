@@ -1,0 +1,34 @@
+name: Verificare status Metin2
+
+on:
+  schedule:
+    - cron: "3-58/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verifica pagina si actualizeaza Discord
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          CHANNEL_ID: "1566465384259915798"
+        run: python check_once.py
+      - name: Salveaza starea
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json board.json
+          git diff --cached --quiet || (git commit -m "Actualizeaza starea" && git push)
